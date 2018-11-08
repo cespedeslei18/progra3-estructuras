@@ -1,0 +1,13 @@
+Consecutivo factura: 1
+
+Cedula: 5903
+Nombre: Pedro Acosta
+Telefono: 9632587
+Codigo super: 1206
+
+Producto | Cantidad | Precio ud. | Total
+Samsung SD Card 128 GB | 1 | 1309 | 1309
+
+Subtotal: 1309
+Descuento: 5
+Total: 1243.55
