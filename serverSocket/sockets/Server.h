@@ -10,7 +10,7 @@
 
 class Server;
 
-typedef void(*MessageReceivedHandler)(Server* listener, int socketId, std::string msg);
+typedef void(*MessageReceivedHandler)(Server* listener, int socketId, std::string msg,int &tipoUsuario);
 
 class Server {
 public:
@@ -27,9 +27,9 @@ public:
 	std::string consultarPrecio(std::string codSuper,std::string codProducto);
 	std::string consultarDescuento(std::string cedula);
 	std::string consultarProductos(std::string codSuper);
-	std::string comprar(string codSuper,string nombre, int cant, float precio);
-	std::string verCarrito();
-	void facturar();
+	std::string comprar(string codSuper,string nombre, int cant, float precio, int tipoUsuario);
+	std::string verCarrito(int tipoUsuario);
+	void facturar(int tipoUsuario);
 	void descuentoExtra();
 	std::string registrarse(std::string codCiudad, std::string cedula,std::string nombre, std::string telefono);
 
@@ -55,7 +55,6 @@ public:
 
 	void setPort(int p) { my_port = p; }
 
-	int tipoUsuario = 4;
 	string cedulaUser;
 	lista colaUsuarios;
 

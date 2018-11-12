@@ -1,0 +1,6 @@
+﻿  Server.cpp
+c:\users\penas\desktop\progra3-datos\progra3-estructuras\serversocket\sockets\datos\abb(ciudades)\binario.cpp(63): warning C4554: "&": compruebe la prioridad de operador para posibles errores; utilice paréntesis para indicar la prioridad
+c:\users\penas\desktop\progra3-datos\progra3-estructuras\serversocket\sockets\datos\cargarciudades.h(13): warning C4018: '<': no coinciden signed/unsigned
+c:\users\penas\desktop\progra3-datos\progra3-estructuras\serversocket\sockets\datos\cargardatos.h(17): warning C4018: '<': no coinciden signed/unsigned
+c:\users\penas\desktop\progra3-datos\progra3-estructuras\serversocket\sockets\datos\cargardatos.h(47): warning C4018: '<': no coinciden signed/unsigned
+  sockets.vcxproj -> C:\Users\penas\Desktop\progra3-datos\progra3-estructuras\serverSocket\sockets\Debug\sockets.exe

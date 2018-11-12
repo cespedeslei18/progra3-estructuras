@@ -8,7 +8,7 @@
 #include <WS2tcpip.h>
 #pragma comment (lib, "ws2_32.lib")
 
-constexpr auto ADMIN = ("1.Insertar producto\n2.Modificar producto\n3.Consultar precio\n4.Consultar descuentos\n5.Consultar productos de un super\n6.Registrar clientes\n7.Reportes\n8.Ver datos\n9.Abrir servidor\nQue desea hacer: ");
+constexpr auto ADMIN = ("1.Insertar producto\n2.Modificar producto\n3.Consultar precio\n4.Consultar descuentos\n5.Consultar productos de un super\n6.Registrar clientes\n7.Reportes\n8.Ver datos\nQue desea hacer: ");
 constexpr auto VENDEDOR = ("1.Consultar precio\n2.Consultar descuento de un cliente\n3.Consultar productos de un super\n4.Cerrar sesion\nQue desea hacer: ");
 constexpr auto NOREGISTRADO = ("1.Consultar precio\n2.Consultar productos\n3.Registrarse\nQue desea hacer: ");
 constexpr auto CLIENTE = ("1.Consultar precio\n2.Consultar descuento\n3.Consultar productos\n4.Comprar(carrito)\n5.Ver carrito\n6.Facturacion\n7.Cerrar sesion\nQue desea hacer: ");
@@ -20,15 +20,15 @@ constexpr auto LOGIN = ("Cedula: ");
 
 using namespace std;
 
-void messageHandler(Server* listener, int client, string msg);
+void messageHandler(Server* listener, int client, string msg,int &tipoUsuario);
 
-Server server("127.0.0.1", messageHandler); //variable del Servidor
+Server server("127.0.0.1",54010, messageHandler); //variable del Servidor
 
-void messageHandler(Server* listener, int client, string msg) {
+void messageHandler(Server* listener, int client, string msg,int &tipoUsuario) {
 	char buf[BUFFER_SIZE];
 	ZeroMemory(buf, BUFFER_SIZE);
-	if (listener->tipoUsuario == 4) { // Respuestas del login
-		if (msg != "0" && msg != "2" && msg != "3") {
+	if (tipoUsuario == 4) { // Respuestas del login
+		if (msg != "0" && msg != "1" && msg != "2" && msg != "3") {
 			listener->Send(client, "Tipo invalido\nTipo:");
 			return;
 		}
@@ -38,19 +38,19 @@ void messageHandler(Server* listener, int client, string msg) {
 		if (server.login(cedula, msg)) {
 			if (msg == "0") {
 				listener->Send(client, CLIENTE);
-				listener->tipoUsuario = 0;
+				tipoUsuario = 0;
 			}
 			else if (msg == "1") {
 				listener->Send(client, ADMIN);
-				listener->tipoUsuario = 1;
+				tipoUsuario = 1;
 			}
 			else if (msg == "2") {
 				listener->Send(client, VENDEDOR);
-				listener->tipoUsuario = 2;
+				tipoUsuario = 2;
 			}
 			else if (msg == "3") {
 				listener->Send(client, FUNCIONARIO);
-				listener->tipoUsuario = 3;
+				tipoUsuario = 3;
 			}
 			else {
 				listener->Send(client, "Respuesta invalida");
@@ -58,12 +58,12 @@ void messageHandler(Server* listener, int client, string msg) {
 		}
 		else if (msg == "0") {
 			listener->Send(client, NOREGISTRADO);
-			listener->tipoUsuario = 5;
+			tipoUsuario = 5;
 		}
 		else
 			listener->Send(client, "Usuario no encontrado\nTipo:");
 	}
-	else if (listener->tipoUsuario == 0) { // Respuestas del cliente
+	else if (tipoUsuario == 0) { // Respuestas del cliente
 		if (msg == "1") { // Consultar precio
 			listener->Send(client, "Codigo del super: ");
 			recv(client, buf, 4096, 0); // Recibir codigos del cliente
@@ -111,10 +111,10 @@ void messageHandler(Server* listener, int client, string msg) {
 				cant = stoi(buf);
 			}
 			prod->cantidad -= cant;
-			listener->Send(client, server.comprar(codSuper, prod->nombre, cant, prod->precioU) + "\n\n" + CLIENTE);
+			listener->Send(client, server.comprar(codSuper, prod->nombre, cant, prod->precioU,tipoUsuario) + "\n\n" + CLIENTE);
 		}
 		else if (msg == "5") { // verCarrito
-			string carrito = server.verCarrito();
+			string carrito = server.verCarrito(tipoUsuario);
 			if (carrito == "") {
 				listener->Send(client, "El carrito esta vacio");
 			}
@@ -123,18 +123,18 @@ void messageHandler(Server* listener, int client, string msg) {
 			}
 		}
 		else if (msg == "6") { // facturar
-			server.facturar();
+			server.facturar(tipoUsuario);
 			listener->Send(client, "Factura lista");
 		}
 		else if (msg == "7") { // Cerrar sesion
 			listener->Send(client, "Tipo: ");
-			listener->tipoUsuario = 4;
+			tipoUsuario = 4;
 		}
 		else {
 			listener->Send(client, "Respuesta invalida");
 		}
 	}
-	else if (listener->tipoUsuario == 1) { // ADMIN
+	else if (tipoUsuario == 1) { // ADMIN
 		if (msg == "1") {
 			string codSuper, cedula, nombre, cantidad, precio;
 			listener->Send(client,"Codigo del super: ");
@@ -220,13 +220,13 @@ void messageHandler(Server* listener, int client, string msg) {
 		}
 		else if (msg == "9") { // Cerrar sesion
 			listener->Send(client, "Tipo: ");
-			listener->tipoUsuario = 4;
+			tipoUsuario = 4;
 		}
 		else{
 			listener->Send(client,"Respuesta invalida");
 		}
 	}
-	else if (listener->tipoUsuario == 2) { // Respuestas del vendedor
+	else if (tipoUsuario == 2) { // Respuestas del vendedor
 		if (msg == "1") { // Consultar precio
 			listener->Send(client, "Codigo del super: ");
 			recv(client, buf, 4096, 0); // Recibir codigos del cliente
@@ -250,13 +250,13 @@ void messageHandler(Server* listener, int client, string msg) {
 		}
 		else if (msg == "4") {
 			listener->Send(client, "Tipo: ");
-			listener->tipoUsuario = 4;
+			tipoUsuario = 4;
 		}
 		else {
 			listener->Send(client, "Respuesta invalida");
 		}
 	}
-	else if (listener->tipoUsuario == 5) { // Respuestas del cliente no registrado
+	else if (tipoUsuario == 5) { // Respuestas del cliente no registrado
 		if (msg == "1") {// Consultar precio
 			listener->Send(client, "Codigo del super: ");
 			recv(client, buf, 4096, 0); // Recibir codigos del cliente
@@ -339,10 +339,10 @@ void messageHandler(Server* listener, int client, string msg) {
 				cant = stoi(buf);
 			}
 			prod->cantidad -= cant;
-			listener->Send(client, server.comprar(codSuper, prod->nombre, cant, prod->precioU) + "\n\n" + FUNCIONARIO);
+			listener->Send(client, server.comprar(codSuper, prod->nombre, cant, prod->precioU,tipoUsuario) + "\n\n" + FUNCIONARIO);
 		}
 		else if (msg == "5") { // verCarrito
-			string carrito = server.verCarrito();
+			string carrito = server.verCarrito(tipoUsuario);
 			if (carrito == "") {
 				listener->Send(client, "El carrito esta vacio");
 			}
@@ -351,7 +351,7 @@ void messageHandler(Server* listener, int client, string msg) {
 			}
 		}
 		else if (msg == "6") { // facturar
-			server.facturar();
+			server.facturar(tipoUsuario);
 			listener->Send(client, "Factura lista");
 		}
 		else if (msg == "7") { // descuentoExtra
@@ -360,7 +360,7 @@ void messageHandler(Server* listener, int client, string msg) {
 		}
 		else if (msg == "8") { // Cerrar sesion
 			listener->Send(client, "Tipo: ");
-			listener->tipoUsuario = 4;
+			tipoUsuario = 4;
 		}
 		else {
 			listener->Send(client, "Respuesta invalida");
@@ -404,7 +404,7 @@ bool Server::Init() {
 void Server::Run() {
 	char buf[BUFFER_SIZE];
 	string input;
-
+	int tipoUsuario = 4;
 	//while (true) {
 		SOCKET listening = CreateSocket();
 		if (listening == INVALID_SOCKET) {
@@ -423,8 +423,10 @@ void Server::Run() {
 				bytesReceived = recv(client, buf, 4096, 0);
 				if (bytesReceived > 0) {
 					if (message != NULL) {
-						message(this, client, std::string(buf, 0, bytesReceived));
-						cout << "CLIENT> " << string(buf, 0, bytesReceived) << endl;
+						cout << "Antes: " << tipoUsuario << endl;
+						message(this, client, std::string(buf, 0, bytesReceived),tipoUsuario);
+						cout << "Despues: " << tipoUsuario << endl;
+						//cout << "CLIENT> " << string(buf, 0, bytesReceived) << endl;
 					}
 				}
 			} while (bytesReceived > 0);
@@ -535,7 +537,7 @@ void Server::descuentoExtra() {
 	user->descuento += 5;
 }
 
-string Server::comprar(string codSuper,string nombre,int cant,float precio) {
+string Server::comprar(string codSuper,string nombre,int cant,float precio, int tipoUsuario) {
 	if (tipoUsuario == 0) {
 		int n;
 		Pagina *p = users.buscar(server.cedulaUser, n);
@@ -554,7 +556,7 @@ string Server::comprar(string codSuper,string nombre,int cant,float precio) {
 	}
 }
 
-string Server::verCarrito() {
+string Server::verCarrito(int tipoUsuario) {
 	if (tipoUsuario == 0) {
 		int n;
 		Pagina *p = users.buscar(server.cedulaUser, n);
@@ -567,7 +569,7 @@ string Server::verCarrito() {
 	}
 }
 
-void Server::facturar() {
+void Server::facturar(int tipoUsuario) {
 	if (tipoUsuario == 0) {
 		int n;
 		Pagina *p = users.buscar(server.cedulaUser, n);
@@ -768,19 +770,17 @@ string Server::registrarCliente(string cedula) {
 		return "Cliente registrado con exito";
 }
 
-void abrirServer(int port) {
-	server.setPort(port);
-	server.Init();
-	server.Run();
-	server.Cleanup();
+void abrirServer() {
+	while(true)
+		server.Run();
 }
 
 int main() {
 	server.cargarDatos();
-	thread s1(abrirServer,54000);
-	s1.detach();
-	thread s2(abrirServer, 54010);
-	s2.detach();
+	server.Init();
+	thread s1(abrirServer);
+	thread s2(abrirServer);
+
 
 	cin.get();
 	cin.get();
