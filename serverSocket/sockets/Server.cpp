@@ -619,7 +619,7 @@ string Server::registrarse(string codCiudad,string cedula,string nombre,string t
 	}
 	else {
 		server.colaUsuarios.InsertarFinal(codCiudad, cedula, nombre, telefono, "0");
-		return "Usuario añadido a la cola de espera";
+		return "Usuario aÃ±adido a la cola de espera";
 	}
 }
 
@@ -780,6 +780,8 @@ int main() {
 	server.Init();
 	thread s1(abrirServer);
 	thread s2(abrirServer);
+	thread s3(abrirServer);
+	thread s4(abrirServer);
 
 
 	cin.get();
